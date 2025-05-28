@@ -1,0 +1,7 @@
+services:
+  app:
+    build : .
+    volumes:
+     - .:/server
+    ports:
+     - 5001:5001
