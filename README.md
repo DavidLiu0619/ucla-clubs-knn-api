@@ -1,65 +1,135 @@
-# UCLA Club Recommender 
+# UCLA Clubs KNN API
+**Author**: Hengyuan (David) Liu
 
-## STATS 418 Final Project, 2025
+This project implements a K-Nearest Neighbors (KNN) based recommendation system through a Flask API to find similar UCLA student organizations based on their descriptions. The model uses natural language processing to vectorize club descriptions and finds the most similar clubs based on cosine similarity.
 
-This project is helping the UCLA Student to find club that best match their interests.
+The project is fully containerized using Docker and deployed to **Google Cloud Run**. Anyone should be able to clone this repo, follow the setup steps, and reproduce the deployment.
 
-This is how the directory looks like
+---
 
-Main Repo:
-	| data
-		| webscrap.ipynb
-		| ucla_orgs_cleaned.csv
-	| eda
-		eda.ipynb
-	| proposal
-		| project proposal.pdf
-	| Docker
-		| Dockerfile
-		| Docker-compose.yml
-	| curl_test.sh
-	| requirements.txt
-	| app.py
-	| embeddings
-		| build_index.py
-		| club_descriptions.json
-		| club embeddings.npy
-		| club_names.json
-		| faiss_dex.bin
-	| model
-		| vectorizer.joblib
-		| clubs.json
-		| nn_model.joblib
-	| shiny_app
-		| app.R
-		| www
-			| logo.png
-	
+## Repository Structure
 
-Data:
-The data is webscrap from the UCLA website: https://community.ucla.edu/studentorgs, it include 4 features: Category, Name, Description, URL, total has 48 features and 2,829 and 1,439 unique clubs.
+| File | Description |
+|------|-------------|
+| `ucla_orgs_cleaned_unique.csv` | Dataset containing UCLA club information |
+| `prediction.py` | Python script containing the KNN prediction function |
+| `model/vectorizer.joblib` | Saved text vectorizer model |
+| `Dockerfile` | Instructions to build the Docker image |
+| `docker-compose.yml` | Used to launch the app locally via Docker |
+| `requirements.txt` | List of Python dependencies |
+| `curl_test.sh` | Test command lines |
 
-On user interface, user will see three sections
-1. Table Mode:  is simply uses the KNN (Cosin) to calculate similarity score base the user input. After the user input, based on the similarity score, it will output top 5 match clubs include: Name, Description, URL and Similarity Score. The KNN model store as Flask API
+---
 
-2.  Chat Mode: use the Gemini API with the prompt:         
-f"User is interested in: {text}\n\n"
-        "Here are some UCLA clubs:\n" +
-        "\n".join(snippets) +
-        "\n\n"
-        "Recommend the top 3 clubs and explain each in JSON only, using this schema:\n"
-        "{\n"
-        "  \"recommendations\": [\n"
-        "    {\"club\": \"<Club Name>\", \"explanation\": \"<Why it fits>\"},\n"
-        "    …\n"
-        "  ]\n"
-        "}"??? I think should change a little bit
+## API Features
 
-The purpose of this mode is answer any questions of the user have for the UCLA club Recommender based on the Category, Club Name, Description, and provide the url of the reference. And necessarily provide the recommend of the which club is matched for the student ask. 
+The API accepts the following parameters:
 
-3. Visualization Mode
-The user can use this to see like the word cloud, distribution of the category by count of the clubs,....(still thinkings)
+- `query` (required) – Text description to find similar clubs
+- `neighbors` (optional, default=5) – Number of neighbors to consider
+- `top` (optional, default=neighbors) – Number of results to return
 
+The response includes:
+- `name` – Club name
+- `category` – Club category
+- `detail_url` – URL to club details
+- `similarity` – Cosine similarity score
 
-The goal is to take our locally deployed model(s) to deploy them to Google Cloud Run. In this way, as long as your instance is running whomever has the endpoint information and post requirements can make a request to your API. 
+---
 
+## Local Testing with Docker
+
+### 1. Clone this repository:
+```bash
+git clone https://github.com/[your-username]/ucla_clubs_knn_api.git
+cd ucla_clubs_knn_api
+```
+
+### 2. Build and run the app locally:
+```bash
+docker compose up -d
+```
+
+### 3. Test the API:
+Verify the server is running:
+```bash
+curl http://localhost:5050/
+```
+
+Test a prediction:
+```bash
+curl -H "Content-Type: application/json" -X POST -d '{"query":"machine learning artificial intelligence", "neighbors":5}' "http://localhost:5050/predict"
+```
+
+### 4. Stop the container:
+```bash
+docker compose down -v
+```
+
+---
+
+## Deployment on Google Cloud Run
+
+### Prerequisites:
+1. Install [Google Cloud CLI](https://cloud.google.com/sdk/docs/install)
+2. Initialize and authenticate:
+```bash
+gcloud init
+gcloud auth configure-docker
+```
+
+### Deployment Steps:
+
+1. Build the Docker image:
+```bash
+docker build -t gcr.io/[PROJECT-ID]/ucla-clubs-api .
+```
+
+2. Push to Google Container Registry:
+```bash
+docker push gcr.io/[PROJECT-ID]/ucla-clubs-api
+```
+
+3. Deploy to Cloud Run:
+```bash
+gcloud run deploy ucla-clubs-api \
+  --image gcr.io/[PROJECT-ID]/ucla-clubs-api \
+  --platform managed \
+  --region us-central1 \
+  --allow-unauthenticated
+```
+
+4. Test the deployed API:
+```bash
+curl -X POST "[YOUR-CLOUD-RUN-URL]/predict" \
+  -H "Content-Type: application/json" \
+  -d '{"query":"machine learning artificial intelligence", "neighbors":5}'
+```
+
+---
+
+## Environment Variables
+
+No sensitive environment variables are required for this project.
+
+---
+
+## Error Handling
+
+The API includes proper error handling for:
+- Empty queries
+- Invalid number of neighbors
+- Invalid input types
+- Missing required parameters
+
+---
+
+## Contributing
+
+Feel free to open issues or submit pull requests for any improvements.
+
+---
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details. 
