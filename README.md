@@ -41,7 +41,7 @@ The response includes:
 
 ### 1. Clone this repository:
 ```bash
-git clone https://github.com/[your-username]/ucla_clubs_knn_api.git
+git clone https://github.com/DavidLiu0619/ucla-clubs-knn-api.git
 cd ucla_clubs_knn_api
 ```
 
@@ -53,13 +53,47 @@ docker compose up -d
 ### 3. Test the API:
 Verify the server is running:
 ```bash
-curl http://localhost:5050/
+curl http://localhost:5001/
 ```
 
 Test a prediction:
 ```bash
-curl -H "Content-Type: application/json" -X POST -d '{"query":"machine learning artificial intelligence", "neighbors":5}' "http://localhost:5050/predict"
+curl -H "Content-Type: application/json" -X POST -d '{"query":"machine learning artificial intelligence", "top":4}' "http://localhost:5001/predict_clubs"
 ```
+
+Expect output:
+```bash
+{
+  "predict clubs": [
+    {
+      "category": "medical and technology",
+      "detail_url": "https://community.ucla.edu/studentorg/6456",
+      "name": "CAIR Collective",
+      "similarity": 0.8159411098154683
+    },
+    {
+      "category": "engineering and technology",
+      "detail_url": "https://community.ucla.edu/studentorg/6081",
+      "name": "Bruin Machine Learning & Analytics",
+      "similarity": 0.3025182975325662
+    },
+    {
+      "category": "medical and technology",
+      "detail_url": "https://community.ucla.edu/studentorg/5059",
+      "name": "AI and Eye",
+      "similarity": 0.22405186589537673
+    },
+    {
+      "category": "engineering and technology",
+      "detail_url": "https://community.ucla.edu/studentorg/3892",
+      "name": "DataRes at UCLA",
+      "similarity": 0.1894215109713645
+    }
+  ]
+}
+
+```
+
 
 ### 4. Stop the container:
 ```bash
@@ -68,49 +102,46 @@ docker compose down -v
 
 ---
 
-## Deployment on Google Cloud Run
-
-### Prerequisites:
-1. Install [Google Cloud CLI](https://cloud.google.com/sdk/docs/install)
-2. Initialize and authenticate:
+## After deployment on Google Cloud Run, Test the deployed API:
 ```bash
-gcloud init
-gcloud auth configure-docker
+curl -H "Content-Type: application/json" \
+     -X POST \
+     -d '{"query": "machine learning artificial intelligence", "top": 4}' \
+     https://ucla-clubs-knn-980752141572.us-central1.run.app/predict_clubs
 ```
 
-### Deployment Steps:
-
-1. Build the Docker image:
+Expect output:
 ```bash
-docker build -t gcr.io/[PROJECT-ID]/ucla-clubs-api .
+{
+  "predict clubs": [
+    {
+      "category": "medical and technology",
+      "detail_url": "https://community.ucla.edu/studentorg/6456",
+      "name": "CAIR Collective",
+      "similarity": 0.8159411098154683
+    },
+    {
+      "category": "engineering and technology",
+      "detail_url": "https://community.ucla.edu/studentorg/6081",
+      "name": "Bruin Machine Learning & Analytics",
+      "similarity": 0.3025182975325662
+    },
+    {
+      "category": "medical and technology",
+      "detail_url": "https://community.ucla.edu/studentorg/5059",
+      "name": "AI and Eye",
+      "similarity": 0.22405186589537673
+    },
+    {
+      "category": "engineering and technology",
+      "detail_url": "https://community.ucla.edu/studentorg/3892",
+      "name": "DataRes at UCLA",
+      "similarity": 0.1894215109713645
+    }
+  ]
+}
+
 ```
-
-2. Push to Google Container Registry:
-```bash
-docker push gcr.io/[PROJECT-ID]/ucla-clubs-api
-```
-
-3. Deploy to Cloud Run:
-```bash
-gcloud run deploy ucla-clubs-api \
-  --image gcr.io/[PROJECT-ID]/ucla-clubs-api \
-  --platform managed \
-  --region us-central1 \
-  --allow-unauthenticated
-```
-
-4. Test the deployed API:
-```bash
-curl -X POST "[YOUR-CLOUD-RUN-URL]/predict" \
-  -H "Content-Type: application/json" \
-  -d '{"query":"machine learning artificial intelligence", "neighbors":5}'
-```
-
----
-
-## Environment Variables
-
-No sensitive environment variables are required for this project.
 
 ---
 
