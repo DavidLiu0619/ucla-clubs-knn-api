@@ -42,7 +42,7 @@ The response includes:
 ### 1. Clone this repository:
 ```bash
 git clone https://github.com/DavidLiu0619/ucla-clubs-knn-api.git
-cd ucla_clubs_knn_api
+cd ucla-clubs-knn-api
 ```
 
 ### 2. Build and run the app locally:
@@ -54,6 +54,11 @@ docker compose up -d
 Verify the server is running:
 ```bash
 curl http://localhost:5001/
+```
+
+Expect output
+```bash
+server is up - nice job! 
 ```
 
 Test a prediction:
