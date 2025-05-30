@@ -160,8 +160,6 @@ The API includes proper error handling for:
 
 ---
 
-## Contributing
-
 Feel free to open issues or submit pull requests for any improvements.
 
 ---
